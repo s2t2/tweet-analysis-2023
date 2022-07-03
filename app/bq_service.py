@@ -11,8 +11,9 @@ GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # i
 
 
 class BigQueryService():
-    def __init__(self):
-        self.client = bigquery.Client()
+
+    def __init__(self, client=None):
+        self.client = client or bigquery.Client()
 
     def execute_query(self, sql, verbose=True):
         if verbose == True:
@@ -29,15 +30,13 @@ class BigQueryService():
 
 
 if __name__ == "__main__":
-    # only run this code when running this file from the command line
-    # ... but NOT when importing code from here
 
     service = BigQueryService()
+    client = service.client
+    print("PROJECT:", client.project)
 
-    sql = f"""
-        SELECT *
-        FROM `tweet-research-shared.impeachment_2020.topics`
-    """
-    df = service.query_to_df(sql)
-
-    print(df.head())
+    print("DATASETS:")
+    datasets = list(client.list_datasets())
+    for ds in datasets:
+        #print("...", ds.project, ds.dataset_id)
+        print("...", ds.reference)

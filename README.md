@@ -1,34 +1,27 @@
-# disinfo-research-group-template
+# Tweet Analysis 2022
 
 
 ## Installation
 
 ### Repo Setup
 
-Make a copy of this template repo. Clone / download your copy of the repo.
-
-And navigate there from the command-line.
+Make a copy of this template repo. Clone / download your copy of the repo onto your local computer (e.g. the Desktop) then navigate there from the command-line:
 
 ```sh
-cd ~/path/to/disinfo-research-group-template
+cd ~/Desktop/tweet-analysis-2022
 ```
-
-### Environment Setup
-
-> If you use conda environments, follow this section
-
 
 Setup a virtual environment:
 
 ```sh
-conda create -n research-env python=3.8
+conda create -n tweets-2022 python=3.10
 ```
+
+Active virtual environment:
 
 ```sh
-conda activate research-env
+conda activate tweets-2022
 ```
-
-### Package Installation
 
 Install packages:
 
@@ -41,9 +34,7 @@ pip install -r requirements.txt
 
 ### Google Credentials
 
-Gain access to the shared drive.
-
-Locate the JSON credentials file in the "credentials" directory, and download it to the root directory of this repo, naming it specifically "google-credentials.json".
+Create your own Google APIs project, obtain JSON credentials file for a service account, and download it to the root directory of this repo, naming it specifically "google-credentials.json".
 
 ### Environment Variables
 
@@ -52,7 +43,8 @@ Create a new local ".env" file and set the following environment variable (`GOOG
 ```sh
 # this is the ".env" file..
 
-GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/disinfo-research-group-template/google-credentials.json"
+# path to the google credentials file you downloaded
+GOOGLE_APPLICATION_CREDENTIALS="/Users/YOUR_USERNAME/Desktop/tweet-analysis-2022/google-credentials.json"
 ```
 
 ## Usage
