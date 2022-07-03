@@ -1,0 +1,43 @@
+
+python-dotenv # a.k.a. dotenv, for reading environment vars from the ".env" file
+
+
+
+#tweepy==3.10.0
+
+google-cloud-bigquery # for interfacing with the BigQuery API
+#google-cloud-storage # for interfacing with Google Cloud Storage
+
+
+
+
+
+# temporarily commenting-out some of these packages to get the heroku build size small enough
+pandas
+#networkx
+#numpy
+#scipy
+#scikit-learn
+#nltk
+#spacy
+#gensim
+#basilica
+#transformers==4.8.2
+
+#matplotlib
+#plotly
+#kaleido # required by plotly to save static images
+#squarify
+
+
+
+#Flask
+#gunicorn
+#flask-cors
+
+
+
+# formerly known as dev dependencies:
+#pytest
+#memory_profiler
+#autopep8
