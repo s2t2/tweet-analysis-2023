@@ -3,9 +3,9 @@ python-dotenv # a.k.a. dotenv, for reading environment vars from the ".env" file
 
 
 
-#tweepy==3.10.0
+tweepy==4.10.0 # interfacing with the Twitter API
 
-google-cloud-bigquery # for interfacing with the BigQuery API
+google-cloud-bigquery==3.2.0 # for interfacing with the BigQuery API
 #google-cloud-storage # for interfacing with Google Cloud Storage
 
 
