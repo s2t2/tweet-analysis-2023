@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from dotenv import load_dotenv
 from google.cloud import bigquery
@@ -27,6 +28,37 @@ class BigQueryService():
         records = [dict(row) for row in list(results)]
         df = DataFrame(records)
         return df
+
+    @staticmethod
+    def split_into_batches(my_list, batch_size=10_000):
+        """Splits a list into evenly sized batches"""
+        # h/t: https://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks
+        for i in range(0, len(my_list), batch_size):
+            yield my_list[i : i + batch_size]
+
+    #@classmethod
+    #def generate_timestamp(dt=None):
+    #    """Formats datetime object for storing in BigQuery. Uses current time by default. """
+    #    dt = dt or datetime.now()
+    #    return dt.strftime("%Y-%m-%d %H:%M:%S")
+
+    def insert_records_in_batches(self, table, records):
+        """
+        Inserts records in batches because attempting to insert too many rows at once
+            may result in google.api_core.exceptions.BadRequest: 400
+
+        Params:
+            table (table ID string, Table, or TableReference)
+            records (list of dictionaries)
+        """
+        rows_to_insert = [list(d.values()) for d in records]
+        #errors = self.client.insert_rows(table, rows_to_insert)
+        errors = []
+        batches = list(BigQueryService.split_into_batches(rows_to_insert, batch_size=5_000))
+        for batch in batches:
+            errors += self.client.insert_rows(table, batch)
+        return errors
+
 
 
 if __name__ == "__main__":
