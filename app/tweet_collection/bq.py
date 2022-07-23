@@ -9,15 +9,22 @@ DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.jan6_
 
 class BigQueryDatabase(BigQueryService):
 
-    # NOTE: we do want to use cached properties for the tables...
-    # ... however we saw some issues the first time after running migrations
-    # ... that the old values were being erroneously referenced
-    # ... and the tables were None
-
     def __init__(self, dataset_address=DATASET_ADDRESS, client=None):
         super().__init__(client=client)
         self.dataset_address = dataset_address.replace(";","") # be safe about sql injection, since we'll be using this address in queries
 
+    #
+    # TABLES
+    #
+    # NOTE: we saw some issues the first time after running migrations
+    # ... that the new tables are not recognized the first time we try to get them
+    # ... this is an issue with BQ needing time to propogate the table reference for newly created tables?
+    # ... can just wait a few minutes after migrating?
+    #
+
+    @cached_property
+    def jobs_table(self):
+        return self.client.get_table(f"{self.dataset_address}.jobs")
 
     @cached_property
     def domains_table(self):
@@ -65,6 +72,28 @@ class BigQueryDatabase(BigQueryService):
     # SAVE RECORDS
     #
 
+    def save_job_metadata(self, record):
+        self.insert_records_in_batches(self.jobs_table, [record])
+
+    def update_job_end(self, job_id:str, job_end:str):
+        """
+        BQ requires us to wait 30 mins before updating a record.
+        So we will encounter an error on shorter jobs, but (hopefully) not on longer running ones.
+        So try to store the end time anyway, and gracefully fail if we encounter an error.
+        It's OK.
+        See: https://cloud.google.com/bigquery/docs/reference/standard-sql/data-manipulation-language
+        """
+        sql = f"""
+            UPDATE `{self.dataset_address}.jobs`
+            SET job_end = '{job_end}'
+            WHERE job_id = '{job_id}'
+        """
+        try:
+            self.execute_query(sql)
+        except Exception as err:
+            print(err)
+
+
     def save_domains(self, records):
         self.insert_records_in_batches(self.domains_table, records)
 
@@ -99,6 +128,27 @@ class BigQueryDatabase(BigQueryService):
     # MIGRATE TABLES
     # ... https://cloud.google.com/bigquery/docs/reference/standard-sql/data-types
     #
+
+    def migrate_jobs_table(self, destructive=False):
+        """WARNING! USE WITH EXTREME CAUTION!"""
+        sql = ""
+        if destructive:
+            sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.jobs`; "
+        sql += f"""
+            CREATE TABLE IF NOT EXISTS `{self.dataset_address}.jobs` (
+                job_id STRING,
+
+                query STRING,
+                start_date STRING,
+                end_date STRING,
+                max_results INT64,
+                page_limit INT64,
+
+                job_start TIMESTAMP,
+                job_end TIMESTAMP,
+            );
+        """
+        self.execute_query(sql)
 
     def migrate_domains_table(self, destructive=False):
         """WARNING! USE WITH EXTREME CAUTION!"""
@@ -155,6 +205,7 @@ class BigQueryDatabase(BigQueryService):
             sql += f"DROP TABLE IF EXISTS `{self.dataset_address}.tweets`; "
         sql += f"""
             CREATE TABLE IF NOT EXISTS `{self.dataset_address}.tweets` (
+                job_id STRING,
                 status_id INT64,
                 status_text STRING,
                 created_at TIMESTAMP,

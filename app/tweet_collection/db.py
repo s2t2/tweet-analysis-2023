@@ -10,6 +10,7 @@ DB_FILEPATH = os.path.join(os.path.dirname(__file__), "tweet_collection_developm
 
 TABLE_NAMES = [
     # "domains", "entities",
+    "jobs",
     "media", "tweets",
     "status_annotations", "status_entities", "status_media", "status_mentions", "status_tags", "status_urls"
 ]
@@ -106,6 +107,19 @@ class CollectionDatabase:
             index=False
         )
 
+
+    def save_job_metadata(self, record):
+        self.insert_data("jobs", [record])
+
+    def update_job_end(self, job_id:str, job_end:str):
+        sql = f"""
+            UPDATE jobs
+            SET job_end = '{job_end}'
+            WHERE
+                job_id = '{job_id}';
+        """
+        self.cursor.execute(sql)
+        self.connection.commit()
 
     def save_domains(self, records):
         self.insert_data("domains", records)

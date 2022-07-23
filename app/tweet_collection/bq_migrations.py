@@ -13,6 +13,7 @@ if __name__ == "__main__":
     seek_confirmation()
 
     #db.migrate_entities_table(destructive=True)
+    db.migrate_jobs_table(destructive=True)
     db.migrate_media_table(destructive=True)
     db.migrate_tweets_table(destructive=True)
     db.migrate_status_annotations_table(destructive=True)

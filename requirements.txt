@@ -9,7 +9,8 @@ google-cloud-bigquery==3.2.0 # for interfacing with the BigQuery API
 #google-cloud-storage # for interfacing with Google Cloud Storage
 
 
-
+# email-sending:
+sendgrid==6.6.0
 
 
 # temporarily commenting-out some of these packages to get the heroku build size small enough
