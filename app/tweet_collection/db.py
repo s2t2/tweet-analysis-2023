@@ -111,10 +111,11 @@ class CollectionDatabase:
     def save_job_metadata(self, record):
         self.insert_data("jobs", [record])
 
-    def update_job_end(self, job_id:str, job_end:str):
+    def update_job_end(self, job_id:str, job_end:str, page_counter:int):
         sql = f"""
             UPDATE jobs
-            SET job_end = '{job_end}'
+            SET job_end = '{job_end}',
+                page_counter = {page_counter}
             WHERE
                 job_id = '{job_id}';
         """

@@ -1,8 +1,11 @@
 
 import os
 from functools import cached_property
+from dotenv import load_dotenv
 
 from app.bq_service import BigQueryService
+
+load_dotenv()
 
 DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.jan6_committee_development") # "MY_PROJECT.MY_DATASET"
 
@@ -75,7 +78,7 @@ class BigQueryDatabase(BigQueryService):
     def save_job_metadata(self, record):
         self.insert_records_in_batches(self.jobs_table, [record])
 
-    def update_job_end(self, job_id:str, job_end:str):
+    def update_job_end(self, job_id:str, job_end:str, page_counter:int):
         """
         BQ requires us to wait 30 mins before updating a record.
         So we will encounter an error on shorter jobs, but (hopefully) not on longer running ones.
@@ -85,7 +88,8 @@ class BigQueryDatabase(BigQueryService):
         """
         sql = f"""
             UPDATE `{self.dataset_address}.jobs`
-            SET job_end = '{job_end}'
+            SET job_end = '{job_end}',
+                page_counter = {page_counter}
             WHERE job_id = '{job_id}'
         """
         try:
@@ -146,6 +150,7 @@ class BigQueryDatabase(BigQueryService):
 
                 job_start TIMESTAMP,
                 job_end TIMESTAMP,
+                page_counter INT64,
             );
         """
         self.execute_query(sql)

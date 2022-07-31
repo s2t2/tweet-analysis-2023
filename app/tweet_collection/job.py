@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from tweepy import Paginator
 from pandas import DataFrame, concat
 
-from app import server_sleep
+from app import server_sleep, APP_ENV
 from app.twitter_service import twitter_api_client
 from app.tweet_collection.db import CollectionDatabase
 from app.tweet_collection.bq import BigQueryDatabase
@@ -50,7 +50,7 @@ class ParsedResponse(SimpleNamespace):
 
     @cached_property
     def metrics_log(self):
-        return f"... TWEETS: {len(self.tweets)} | MENTIONS: {len(self.status_mentions)} | TAGS: {len(self.status_tags)} | ANNOTATIONS: {len(self.status_annotations)} | URLS: {len(self.status_urls)} | ENTITIES: {len(self.status_entities)} | MEDIA: {len(self.media)} STAT-MED: {len(self.status_media)}"
+        return f"... TWEETS: {len(self.tweets)} | MENTIONS: {len(self.status_mentions)} | TAGS: {len(self.status_tags)} | ANNOTATIONS: {len(self.status_annotations)} | URLS: {len(self.status_urls)} | ENTITIES: {len(self.status_entities)} | MEDIA: {len(self.status_media)}"
 
 
 class Job:
@@ -74,6 +74,15 @@ class Job:
 
         self.job_start = None
         self.job_end = None
+        self.page_counter = 0
+
+        print("------------------")
+        print("JOB...")
+        print("QUERY:", self.query)
+        print("START DATE:", self.start_date)
+        print("END DATE:", self.end_date)
+
+
 
     @staticmethod
     def serializable(val):
@@ -93,6 +102,7 @@ class Job:
 
             "job_start": self.serializable(self.job_start),
             "job_end": self.serializable(self.job_end),
+            "page_counter": self.page_counter,
         }
 
 
@@ -166,9 +176,9 @@ class Job:
         status_entity_records = []
         url_records = []
 
-        users = response.includes["users"]
+        users = response.includes.get("users") or []
         media = response.includes.get("media") or []
-        tweets = response.includes["tweets"]
+        tweets = response.includes.get("tweets") or []
 
         #
         # MEDIA
@@ -213,15 +223,27 @@ class Job:
             "width": m.get("width"),
         } for m in media]
 
-
-
-
         #print("MEDIA:")
         #pprint(media_records)
 
+        if not response.data:
+            print("NO RESPONSE DATA!?")
+            # or maybe raise?
+            return None
+
         for tweet in response.data:
             user_id = tweet.author_id
-            user = [user for user in users if user.id == user_id][0]
+            try:
+                user = [user for user in users if user.id == user_id][0]
+                user_screen_name = user.username
+                user_name = user.name
+                user_created_at = user.created_at
+                user_verified = user.verified
+            except IndexError:
+                user_screen_name = None
+                user_name = None
+                user_created_at = None
+                user_verified = None
 
             full_text = tweet.text
 
@@ -241,7 +263,7 @@ class Job:
                     try:
                         original = [tweet for tweet in tweets if tweet.id == ref_id][0]
                     except Exception as err:
-                        print(err, "original tweet not found. will need to look it up later.") #> list index out of range
+                        #print(err, "original tweet not found. will need to look it up later.") #> list index out of range
                         original = None
 
                     if ref_type == "retweeted":
@@ -269,14 +291,17 @@ class Job:
 
             tweet_records.append({
                 "job_id": self.job_id,
+                # tweet info
                 "status_id": tweet.id,
                 "status_text": full_text,
                 "created_at": tweet.created_at,
+                # user info
                 "user_id": user_id,
-                "user_screen_name":user.username,
-                "user_name": user.name,
-                "user_created_at": user.created_at,
-                "user_verified": user.verified,
+                "user_screen_name": user_screen_name,
+                "user_name": user_name,
+                "user_created_at": user_created_at,
+                "user_verified": user_verified,
+                #
                 "retweet_status_id": retweet_status_id,
                 "retweet_user_id": retweet_user_id,
                 "reply_status_id": reply_status_id,
@@ -347,7 +372,8 @@ class Job:
                 #
                 # MEDIA
                 #
-                media_keys = [{"status_id": tweet.id, "media_key": mk} for mk in attachments["media_keys"]]
+                media_keys = attachments.get("media_keys") or []
+                media_keys = [{"status_id": tweet.id, "media_key": mk} for mk in media_keys]
                 #print("MEDIA KEYS:", media_keys)
                 status_media_records += media_keys
 
@@ -414,42 +440,60 @@ class Job:
 
     def perform(self):
         self.job_start = datetime.now()
-        self.db.save_job_metadata(job.metadata)
+        self.db.save_job_metadata(self.metadata)
 
-        page_counter = 0
+        self.page_counter = 0
         for response in self.fetch_tweets():
-            page_counter+=1
-            print("PAGE:", page_counter)
+            self.page_counter+=1
+            print("PAGE:", self.page_counter)
             #tweets, tags, mentions, annotations, media, status_media, status_entities = job.parse_response(response)
             pr = self.parse_response(response)
-            #print(pr)
-            #print(pr.metrics)
-            print(pr.metrics_log)
+            if pr:
+                #print(pr)
+                #print(pr.metrics)
+                print(pr.metrics_log)
 
-            self.db.save_tweets(pr.tweets)
-            self.db.save_status_tags(pr.status_tags)
-            self.db.save_status_mentions(pr.status_mentions)
-            self.db.save_status_annotations(pr.status_annotations)
-            self.db.save_media(pr.media)
-            self.db.save_status_media(pr.status_media)
-            self.db.save_status_entities(pr.status_entities)
-            self.db.save_status_urls(pr.status_urls)
+                self.db.save_tweets(pr.tweets)
+                self.db.save_status_tags(pr.status_tags)
+                self.db.save_status_mentions(pr.status_mentions)
+                self.db.save_status_annotations(pr.status_annotations)
+                self.db.save_media(pr.media)
+                self.db.save_status_media(pr.status_media)
+                self.db.save_status_entities(pr.status_entities)
+                self.db.save_status_urls(pr.status_urls)
 
         self.job_end = datetime.now()
-        self.db.update_job_end(self.job_id, str(self.job_end))
+        self.db.update_job_end(self.job_id, str(self.job_end), self.page_counter)
 
 
 if __name__ == "__main__":
 
     from app.email_service import send_email
+    from app import SERVER_NAME
 
     job = Job()
 
-    job.perform()
+    try:
+        job.perform()
 
-    send_email(subject="[Tweet Collection Job Complete]", html=f"""
-        <h3>Job Complete!</h3>
-        <p>Job Id: <pre>{job.job_id}</pre> </p>
-        <p>Job Metadata: <pre>{job.metadata}</pre> </p>
-    """)
+        if APP_ENV == "production":
+            send_email(subject="[Tweet Collection Job Complete]", html=f"""
+                <h3>Job Complete!</h3>
+                <p>Server Name: <pre>{SERVER_NAME}</pre> </p>
+                <p>Job Id: <pre>{job.job_id}</pre> </p>
+                <p>Query: <pre>{job.query}</pre> </p>
+                <p>Job Metadata: <pre>{job.metadata}</pre> </p>
+            """)
+    except Exception as err:
+        print("OOPS", err)
+        if APP_ENV == "production":
+            send_email(subject="[Tweet Collection Job Error]", html=f"""
+                <h3>Job Error</h3>
+                <p>Server Name: <pre>{SERVER_NAME}</pre> </p>
+                <p>Job Id: <pre>{job.job_id}</pre> </p>
+                <p>Query: <pre>{job.query}</pre> </p>
+                <p>Job Error: <pre>{err}</pre> </p>
+                <p>Job Metadata: <pre>{job.metadata}</pre> </p>
+            """)
+
     server_sleep()
