@@ -153,7 +153,20 @@ class CollectionDatabase:
         self.insert_data("status_urls", records)
 
 
+    #
+    # QUERIES
+    #
 
+    def get_downloadable_media(self):
+        sql = f"""
+            SELECT
+                m.media_key
+                ,m.type as media_type
+                ,m.url as media_url
+                ,m.preview_image_url
+            FROM media m
+        """
+        return self.cursor.execute(sql)
 
 
 

@@ -10,6 +10,8 @@ load_dotenv()
 APP_ENV = os.getenv("APP_ENV", "development")
 SERVER_NAME = os.getenv("SERVER_NAME", "mjr-local") # the name of your Heroku app (e.g. "impeachment-tweet-analysis-9")
 
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud
+
 def seek_confirmation():
     if APP_ENV == "development":
         if input("CONTINUE? (Y/N): ").upper() != "Y":

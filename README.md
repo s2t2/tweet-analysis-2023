@@ -3,8 +3,6 @@
 
 ## Installation
 
-### Repo Setup
-
 Make a copy of this template repo. Clone / download your copy of the repo onto your local computer (e.g. the Desktop) then navigate there from the command-line:
 
 ```sh
@@ -30,7 +28,7 @@ pip install -r requirements.txt
 ```
 
 
-## Setup
+## Services Setup
 
 ### Google Credentials
 
@@ -44,43 +42,117 @@ Obtain Twitter API credentials from the [Twitter Developer Portal](https://devel
 
 Obtain Sendgrid API credentials from the [Sendgrid website](https://sendgrid.com/) (i.e. `SENDGRID_API_KEY` below). Create a sender identity and verify it (i.e. `SENDER_ADDRESS` below).
 
+### Google Cloud Storage
 
-### Environment Variables
+If you would like to save files to cloud storage, create a new bucket or gain access to an existing bucket, and set the `BUCKET_NAME` environment variable accordingly (see environment variable setup below).
 
-Create a new local ".env" file and set the following environment variable (`GOOGLE_APPLICATION_CREDENTIALS`):
+
+
+
+## Database Setup
+
+You can use a SQLite database, or a BigQuery database. If you want to start with an SQLite database, feel free to skip the BigQuery setup steps below.
+
+### BigQuery Setup
+
+In the respective Google APIs project, setup a new BigQuery dataset for each new collection effort. Consider creating two datasets, one for development and one for production.
+
+The `DATASET_ADDRESS` environment variable will be a namespaced combination of the google project name and the dataset name (i.e. "my-project.my_dataset_development").
+
+If this is your first time setting up the database, also run the migrations to create the tables:
+
+```sh
+# WARNING!!! USE WITH CAUTION!!!
+
+# python -m app.tweet_collection.bq_migrations
+
+DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" python -m app.tweet_collection.bq_migrations
+```
+
+
+
+
+## Configuration
+
+Create a new local ".env" file and set environment variables to configure services, as desired:
 
 ```sh
 # this is the ".env" file..
 
+#
+# GOOGLE APIS
+#
 # path to the google credentials file you downloaded
 GOOGLE_APPLICATION_CREDENTIALS="/Users/YOUR_USERNAME/Desktop/tweet-analysis-2022/google-credentials.json"
 
+#
+# GOOGLE BIGQUERY
+#
+DATASET_ADDRESS="my-project.my_database_name"
 
+#
+# GOOGLE CLOUD STORAGE
+#
+BUCKET_NAME="my-bucket"
+
+#
+# TWITTER API
+#
 TWITTER_BEARER_TOKEN="..."
 
-
+#
+# SENDGRID API
+#
 SENDGRID_API_KEY="SG.___________"
 SENDER_ADDRESS="example@gmail.com"
-
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## Usage
 
+### Services
 
-Demonstrate ability to fetch data from BigQuery:
+Demonstrate ability to fetch data from BigQuery, as desired:
 
 ```sh
 python -m app.bq_service
 ```
 
-Demonstrate ability to fetch data from Twitter API:
+Demonstrate ability to fetch data from Twitter API, as desired:
 
 ```sh
 python -m app.twitter_service
 ```
 
-Demonstrate ability to send email:
+Demonstrate ability to send email, as desired:
 
 ```sh
 python -m app.email_service
 ```
+
+Demonstrate ability to connect to cloud storage, as desired:
+
+```sh
+python -m app.cloud_storage
+```
+
+### Jobs
+
+  + [Tweet Collection](app/tweet_collection/README.md)
+  + [Media Collection](app/media_collection/README.md)

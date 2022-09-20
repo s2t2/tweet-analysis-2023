@@ -5,6 +5,9 @@ tweet-research-shared*.json
 
 data/*.csv
 app/*/*.db
+media/*.jpg
+media/*.jpeg
+media/*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
