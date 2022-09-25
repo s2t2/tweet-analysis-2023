@@ -1,13 +1,7 @@
 
-import os
 from functools import cached_property
-from dotenv import load_dotenv
 
-from app.bq_service import BigQueryService
-
-load_dotenv()
-
-DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.jan6_committee_development") # "MY_PROJECT.MY_DATASET"
+from app.bq_service import BigQueryService, DATASET_ADDRESS
 
 
 class BigQueryDatabase(BigQueryService):

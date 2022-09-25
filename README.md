@@ -3,7 +3,7 @@
 
 ## Installation
 
-Make a copy of this template repo. Clone / download your copy of the repo onto your local computer (e.g. the Desktop) then navigate there from the command-line:
+Make a copy of this repo. Clone / download your copy of the repo onto your local computer (e.g. the Desktop) then navigate there from the command-line:
 
 ```sh
 cd ~/Desktop/tweet-analysis-2022
@@ -15,7 +15,7 @@ Setup a virtual environment:
 conda create -n tweets-2022 python=3.10
 ```
 
-Active virtual environment:
+Activate virtual environment:
 
 ```sh
 conda activate tweets-2022
@@ -47,30 +47,15 @@ Obtain Sendgrid API credentials from the [Sendgrid website](https://sendgrid.com
 If you would like to save files to cloud storage, create a new bucket or gain access to an existing bucket, and set the `BUCKET_NAME` environment variable accordingly (see environment variable setup below).
 
 
-
-
 ## Database Setup
 
-You can use a SQLite database, or a BigQuery database. If you want to start with an SQLite database, feel free to skip the BigQuery setup steps below.
+You can use a SQLite database, or a BigQuery database.
 
 ### BigQuery Setup
 
-In the respective Google APIs project, setup a new BigQuery dataset for each new collection effort. Consider creating two datasets, one for development and one for production.
+If you want to use a Bigquery database, in the respective Google APIs project, setup a new BigQuery dataset for each new collection effort. Consider creating two datasets, one for development and one for production.
 
 The `DATASET_ADDRESS` environment variable will be a namespaced combination of the google project name and the dataset name (i.e. "my-project.my_dataset_development").
-
-If this is your first time setting up the database, also run the migrations to create the tables:
-
-```sh
-# WARNING!!! USE WITH CAUTION!!!
-
-# python -m app.tweet_collection.bq_migrations
-
-DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" python -m app.tweet_collection.bq_migrations
-```
-
-
-
 
 ## Configuration
 
@@ -83,7 +68,7 @@ Create a new local ".env" file and set environment variables to configure servic
 # GOOGLE APIS
 #
 # path to the google credentials file you downloaded
-GOOGLE_APPLICATION_CREDENTIALS="/Users/YOUR_USERNAME/Desktop/tweet-analysis-2022/google-credentials.json"
+GOOGLE_APPLICATION_CREDENTIALS="/Users/path/to/tweet-analysis-2022/google-credentials.json"
 
 #
 # GOOGLE BIGQUERY
@@ -106,22 +91,6 @@ TWITTER_BEARER_TOKEN="..."
 SENDGRID_API_KEY="SG.___________"
 SENDER_ADDRESS="example@gmail.com"
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ## Usage
@@ -156,3 +125,4 @@ python -m app.cloud_storage
 
   + [Tweet Collection](app/tweet_collection/README.md)
   + [Media Collection](app/media_collection/README.md)
+  + [Tweet Streaming](app/tweet_streaming/README.md)

@@ -10,6 +10,9 @@ load_dotenv()
 
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud (and keras)
 
+# used by child classes only, defined here for convenience
+DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.jan6_committee_development") # "MY_PROJECT.MY_DATASET"
+
 
 class BigQueryService():
 
@@ -36,11 +39,11 @@ class BigQueryService():
         for i in range(0, len(my_list), batch_size):
             yield my_list[i : i + batch_size]
 
-    #@classmethod
-    #def generate_timestamp(dt=None):
-    #    """Formats datetime object for storing in BigQuery. Uses current time by default. """
-    #    dt = dt or datetime.now()
-    #    return dt.strftime("%Y-%m-%d %H:%M:%S")
+    @staticmethod
+    def generate_timestamp(dt=None):
+        """Formats datetime object for storing in BigQuery. Uses current time by default. """
+        dt = dt or datetime.now()
+        return dt.strftime("%Y-%m-%d %H:%M:%S")
 
     def insert_records_in_batches(self, table, records):
         """

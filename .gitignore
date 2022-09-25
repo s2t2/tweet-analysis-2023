@@ -9,6 +9,9 @@ media/*.jpg
 media/*.jpeg
 media/*.png
 
+data/tweet_streaming/*/*.csv
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

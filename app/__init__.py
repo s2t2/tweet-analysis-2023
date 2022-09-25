@@ -12,6 +12,8 @@ SERVER_NAME = os.getenv("SERVER_NAME", "mjr-local") # the name of your Heroku ap
 
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud
 
+DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
+
 def seek_confirmation():
     if APP_ENV == "development":
         if input("CONTINUE? (Y/N): ").upper() != "Y":

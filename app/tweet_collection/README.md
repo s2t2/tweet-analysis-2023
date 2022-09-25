@@ -1,10 +1,16 @@
-# Tweet Collection (2022)
+# Tweet Collection (Search)
 
 ## Setup
 
 Setup your twitter credentials, sendgrid credentials, and demonstrate your ability to connect, as described in the [README](/README.md).
 
 Also choose a database (sqlite or bigquery), and if bigquery, run migrations and test your ability to connect, as described in the [README](/README.md).
+
+Migrating tables:
+
+```sh
+DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" python -m app.tweet_collection.bq_migrations
+```
 
 ## Usage
 
