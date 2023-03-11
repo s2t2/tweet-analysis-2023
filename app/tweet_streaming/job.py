@@ -59,7 +59,7 @@ class MyClient(StreamingClient):
 
         # self.add_rules()
 
-        self.storage = get_storage()
+        self.storage_mode, self.storage = get_storage()
 
         self.counter = 0 # refers to the number of responses processed
         self.batch_size_limit = batch_size_limit # refers to the max number of responses in the batch before saving
@@ -160,11 +160,10 @@ class MyClient(StreamingClient):
         self.counter += 1
         print(self.counter, "---", response.data.id)
 
-        self.update_batch(response)
+        self.parse_response(response)
 
         if self.counter % self.batch_size_limit == 0:
             self.save_and_clear_batch()
-
 
     def save_and_clear_batch(self):
         print("----------------")
@@ -188,10 +187,12 @@ class MyClient(StreamingClient):
         self.batch = self.default_batch
 
 
-    def update_batch(self, response):
-        # wrapper for named tuple ("data", "includes", "errors", "matching_rules")
+    def parse_response(self, response):
+        # response is a named tuple ("data", "includes", "errors", "matching_rules")
+
         tweet = response.data
         includes = response.includes
+        matching_rules = response.matching_rules
         if any(response.errors):
             print("-----------")
             print("ERRORS...")
@@ -202,7 +203,7 @@ class MyClient(StreamingClient):
 
         ref_tweets = includes.get("tweets") or []
         tweets = [tweet] + ref_tweets
-        self.parse_tweets(tweets)
+        self.parse_tweets(tweets=tweets, matching_rules=matching_rules)
 
         users = includes.get("users") or []
         self.parse_users(users)
@@ -231,7 +232,13 @@ class MyClient(StreamingClient):
             "width": m.get("width"),
         } for m in media]
 
-    def parse_tweets(self, tweets):
+    def parse_tweets(self, tweets, matching_rules=None):
+        matching_rules = matching_rules or []
+        matching_rule_ids = [rule.id for rule in matching_rules]
+        if self.storage_mode == "sqlite":
+            # store flat in sqlite, as lists not supported
+            matching_rule_ids = ", ".join(matching_rule_ids)
+
         for tweet in tweets:
 
             retweet_status_id, reply_status_id, quote_status_id = None, None, None
@@ -246,10 +253,12 @@ class MyClient(StreamingClient):
                     elif ref_type == "quoted":
                         quote_status_id = ref_tweet.id
 
+            #breakpoint()
             self.batch["tweets"].append({
                 "status_id": tweet.id,
                 "status_text": tweet.text,
                 "created_at": tweet.created_at,
+                "lang": tweet.lang,
                 # user info:
                 "user_id": tweet.author_id,
                 # referenced tweet info:
@@ -258,6 +267,8 @@ class MyClient(StreamingClient):
                 "quote_status_id": quote_status_id,
                 # this is new
                 "conversation_id": tweet.conversation_id,
+                # keep track of which rules!
+                "matching_rule_ids": matching_rule_ids
             })
 
             if tweet.attachments:

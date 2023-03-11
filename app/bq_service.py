@@ -11,7 +11,7 @@ load_dotenv()
 GOOGLE_APPLICATION_CREDENTIALS = os.getenv("GOOGLE_APPLICATION_CREDENTIALS") # implicit check by google.cloud (and keras)
 
 # used by child classes only, defined here for convenience
-DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.jan6_committee_development") # "MY_PROJECT.MY_DATASET"
+DATASET_ADDRESS = os.getenv("DATASET_ADDRESS", default="tweet-collector-py.f1_racing_2023_development") # "MY_PROJECT.MY_DATASET"
 
 
 class BigQueryService():

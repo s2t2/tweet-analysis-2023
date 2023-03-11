@@ -2,10 +2,15 @@
 
 
 import os
+from dotenv import load_dotenv
 
 from app.base_db import BaseDatabase
 
-DB_FILEPATH = os.path.join(os.path.dirname(__file__), "tweet_streaming_development.db") # a path to wherever your database exists
+
+load_dotenv()
+
+DB_NAME = os.getenv("DB_NAME", default="tweet_streaming_development.db")
+DB_FILEPATH = os.path.join(os.path.dirname(__file__), DB_NAME) # a path to wherever your database exists
 
 TABLE_NAMES = [
     "rules",
@@ -21,8 +26,14 @@ class StreamingDatabase(BaseDatabase):
         super().__init__(filepath=filepath, destructive=destructive, table_names=TABLE_NAMES)
 
     def fetch_rule_names(self):
-        results = self.cursor.execute("SELECT DISTINCT rule FROM rules;").fetchall()
-        return [row["rule"] for row in results]
+        try:
+            results = self.cursor.execute("SELECT DISTINCT rule FROM rules;").fetchall()
+            return [row["rule"] for row in results]
+        except Exception as err:
+            # if the table does not exist, just pass back an empty list instead of throwing sqlite3.OperationalError
+            return []
+
+
 
     def seed_rules(self, records):
         existing_rules = self.fetch_rule_names()
