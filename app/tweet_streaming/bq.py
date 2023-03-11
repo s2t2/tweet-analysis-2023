@@ -80,6 +80,7 @@ class BigQueryDatabase(BigQueryService):
                 status_id INT64,
                 status_text STRING,
                 created_at TIMESTAMP,
+                lang STRING,
 
                 user_id INT64,
 
@@ -87,6 +88,8 @@ class BigQueryDatabase(BigQueryService):
                 reply_status_id INT64,
                 quote_status_id INT64,
                 conversation_id INT64,
+
+                matching_rule_ids ARRAY<INT64>
             );
         """
         self.execute_query(sql)
