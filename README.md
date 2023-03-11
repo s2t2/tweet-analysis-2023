@@ -1,5 +1,10 @@
 # Tweet Analysis 2023
 
+If there is any last minute Twitter data collection we can do before access shuts off, we will do it.
+
+
+This repo expands upon the [previous approach](https://github.com/s2t2/tweet-analysis-2022), with improvements such as storing the tweet language and matching rule identifiers.
+
 
 ## Installation
 
