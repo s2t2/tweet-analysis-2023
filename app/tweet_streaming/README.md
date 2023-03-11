@@ -60,6 +60,13 @@ STORAGE_MODE="remote" DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" python -m app.
 #EVENT_NAME="YOUR_EVENT" DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" python -m app.tweet_streaming.seed_rules
 ```
 
+UPDATE: we found that rules are associated with the bearer token, and so if you have added a rule by accident, you can run the rules manager to delete it by its identifier:
+
+
+```sh
+python -m app.tweet_streaming.rules_manager
+```
+
 ## Usage
 
 Collect tweets matching the specified stream rules:
