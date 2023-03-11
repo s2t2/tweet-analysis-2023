@@ -11,6 +11,6 @@ STORAGE_MODE = os.getenv("STORAGE_MODE", default="local")
 
 def get_storage(storage_mode=STORAGE_MODE):
     if storage_mode in ["local", "sqlite", "db"]:
-        return StreamingDatabase()
+        return "sqlite", StreamingDatabase()
     elif storage_mode in ["remote", "bq"]:
-        return BigQueryDatabase()
+        return "bq", BigQueryDatabase()

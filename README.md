@@ -1,4 +1,9 @@
-# Tweet Analysis 2022
+# Tweet Analysis 2023
+
+If there is any last minute Twitter data collection we can do before access shuts off, we will do it.
+
+
+This repo expands upon the [previous approach](https://github.com/s2t2/tweet-analysis-2022), with improvements such as storing the tweet language and matching rule identifiers.
 
 
 ## Installation
@@ -6,19 +11,19 @@
 Make a copy of this repo. Clone / download your copy of the repo onto your local computer (e.g. the Desktop) then navigate there from the command-line:
 
 ```sh
-cd ~/Desktop/tweet-analysis-2022
+cd ~/Desktop/tweet-analysis-2023
 ```
 
 Setup a virtual environment:
 
 ```sh
-conda create -n tweets-2022 python=3.10
+conda create -n tweets-2023 python=3.10
 ```
 
 Activate virtual environment:
 
 ```sh
-conda activate tweets-2022
+conda activate tweets-2023
 ```
 
 Install packages:
@@ -123,6 +128,10 @@ python -m app.cloud_storage
 
 ### Jobs
 
-  + [Tweet Collection](app/tweet_collection/README.md)
-  + [Media Collection](app/media_collection/README.md)
-  + [Tweet Streaming](app/tweet_streaming/README.md)
+Search:
+
+  + [Tweet Collection (Search)](app/tweet_collection/README.md)
+  + [Media Collection (Search)](app/media_collection/README.md)
+
+Streaming:
+  + [Tweet Collection (Streaming)](app/tweet_streaming/README.md)

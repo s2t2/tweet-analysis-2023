@@ -52,12 +52,10 @@ Seed your chosen database with rules from the CSV file:
 
 ```sh
 # for SQLite:
-STORAGE_MODE="local" python -m app.tweet_streaming.seed_rules
-# EVENT_NAME="YOUR_EVENT" python -m app.tweet_streaming.seed_rules
+STORAGE_MODE="local" EVENT_NAME="f1_racing" python -m app.tweet_streaming.seed_rules
 
 # for BigQuery:
-STORAGE_MODE="remote" DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" python -m app.tweet_streaming.seed_rules
-#EVENT_NAME="YOUR_EVENT" DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" python -m app.tweet_streaming.seed_rules
+STORAGE_MODE="remote" DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" EVENT_NAME="f1_racing" python -m app.tweet_streaming.seed_rules
 ```
 
 UPDATE: we found that rules are associated with the bearer token, and so if you have added a rule by accident, you can run the rules manager to delete it by its identifier:
@@ -72,14 +70,14 @@ python -m app.tweet_streaming.rules_manager
 Collect tweets matching the specified stream rules:
 
 ```sh
-python app.tweet_streaming.job
+python -m app.tweet_streaming.job
 
 # with batch size:
-BATCH_SIZE=5 python app.tweet_streaming.job
+BATCH_SIZE=5 python -m app.tweet_streaming.job
 
 # storing to SQLite:
-STORAGE_MODE="local" python app.tweet_streaming.job
+STORAGE_MODE="local" EVENT_NAME="f1_racing" python -m app.tweet_streaming.job
 
 # storing to BigQuery:
-STORAGE_MODE="remote" DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" python app.tweet_streaming.job
+STORAGE_MODE="remote" DATASET_ADDRESS="YOUR_PROJECT.YOUR_DATASET" python -m app.tweet_streaming.job
 ```
