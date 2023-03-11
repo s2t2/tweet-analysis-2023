@@ -9,8 +9,10 @@ from app.base_db import BaseDatabase
 
 load_dotenv()
 
+EVENT_NAME = os.getenv("EVENT_NAME", default="my_event")
 DB_NAME = os.getenv("DB_NAME", default="tweet_streaming_development.db")
-DB_FILEPATH = os.path.join(os.path.dirname(__file__), DB_NAME) # a path to wherever your database exists
+#DB_FILEPATH = os.path.join(os.path.dirname(__file__), DB_NAME) # a path to wherever your database exists
+DB_FILEPATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "tweet_streaming", EVENT_NAME, DB_NAME) # a path to wherever your database exists
 
 TABLE_NAMES = [
     "rules",

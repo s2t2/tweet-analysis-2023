@@ -10,6 +10,8 @@ media/*.jpeg
 media/*.png
 
 data/tweet_streaming/*/*.csv
+data/tweet_streaming/*/*.db
+data/tweet_streaming/*/*.sqlite
 
 
 # Byte-compiled / optimized / DLL files

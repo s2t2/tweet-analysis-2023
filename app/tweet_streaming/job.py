@@ -182,9 +182,12 @@ class MyClient(StreamingClient):
         self.storage.save_user_hashtags(self.batch["user_hashtags"])
         self.storage.save_user_mentions(self.batch["user_mentions"])
 
+        #breakpoint()
+
         print("------------")
         print("CLEARING BATCH...")
         self.batch = self.default_batch
+
 
 
     def parse_response(self, response):
@@ -239,6 +242,7 @@ class MyClient(StreamingClient):
             # store flat in sqlite, as lists not supported
             matching_rule_ids = ", ".join(matching_rule_ids)
 
+        # for some reason we are seeing lots of double / duplicate tweets?
         for tweet in tweets:
 
             retweet_status_id, reply_status_id, quote_status_id = None, None, None
@@ -254,7 +258,7 @@ class MyClient(StreamingClient):
                         quote_status_id = ref_tweet.id
 
             #breakpoint()
-            self.batch["tweets"].append({
+            parsed_tweet = {
                 "status_id": tweet.id,
                 "status_text": tweet.text,
                 "created_at": tweet.created_at,
@@ -269,7 +273,10 @@ class MyClient(StreamingClient):
                 "conversation_id": tweet.conversation_id,
                 # keep track of which rules!
                 "matching_rule_ids": matching_rule_ids
-            })
+            }
+            # de-duplicate tweets
+            if parsed_tweet not in(self.batch["tweets"]):
+                self.batch["tweets"].append(parsed_tweet)
 
             if tweet.attachments:
                 media_keys = tweet.attachments.get("media_keys") or []

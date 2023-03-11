@@ -22,7 +22,7 @@ class BaseDatabase:
 
         self.filepath = filepath
         print("------------------")
-        print("DB FILEPATH:", self.filepath)
+        print("DB FILEPATH:", os.path.abspath(self.filepath))
 
         self.connection = sqlite3.connect(self.filepath)
         self.connection.row_factory = sqlite3.Row
