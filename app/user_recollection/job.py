@@ -72,17 +72,19 @@ class Job:
 
         recollected_user_ids = self.recollected_user_ids
         remaining_user_ids = list(set(all_ids) - set(recollected_user_ids))
+        print("REMAINING:", len(remaining_user_ids))
         if self.users_limit:
             remaining_user_ids = remaining_user_ids[0 : self.users_limit]
-        print("REMAINING:", len(remaining_user_ids))
+            print("SELECTED:", len(remaining_user_ids))
 
         batch_counter = 1
         recollected_users_table = self.recollected_users_table
         for ids_batch in self.bq.split_into_batches(remaining_user_ids, 100):
-            print("BATCH:", batch_counter)
 
             batch = []
             lookup_at = datetime.now()
+            print("BATCH:", batch_counter, "|", lookup_at.strftime("%Y-%m-%d %H:%M:%S"))
+
             results = self.lookup_users(ids_batch)
 
             for user in results.data:
