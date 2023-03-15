@@ -17,6 +17,7 @@ data/tweet_streaming/*/*.sqlite
 data/user_recollection/*/*.csv
 
 
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
