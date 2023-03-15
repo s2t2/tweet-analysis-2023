@@ -29,3 +29,18 @@ EVENT_NAME="my_event" USERS_CSV_FILENAME="users.csv"  python -m app.user_recolle
 
 # DATASET_ADDRESS="tweet-collector-py.impeachment_development" EVENT_NAME="impeachment_2020" LIMIT=1000 python -m app.user_recollection.job
 ```
+
+## Monitoring
+
+```sql
+WITH results as (
+  SELECT
+    count(distinct user_id) as lookup_count
+    ,count(distinct case when error is null then user_id end) as success_count
+    ,count(distinct case when error is not null then user_id end) as failure_count
+  FROM `tweet-collector-py.impeachment_production.recollected_users`
+)
+
+SELECT *, success_count / lookup_count as success_rate
+FROM results
+```
