@@ -83,7 +83,7 @@ class Job:
 
             batch = []
             lookup_at = datetime.now()
-            print("BATCH:", batch_counter, "|", lookup_at.strftime("%Y-%m-%d %H:%M:%S"))
+            print(lookup_at.strftime("%Y-%m-%d %H:%M:%S"),  "|", "BATCH:", batch_counter)
 
             results = self.lookup_users(ids_batch)
 
