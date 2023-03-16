@@ -1,3 +1,4 @@
+.DS_Store
 
 google-credentials.json
 *credentials*.json
@@ -12,6 +13,9 @@ media/*.png
 data/tweet_streaming/*/*.csv
 data/tweet_streaming/*/*.db
 data/tweet_streaming/*/*.sqlite
+
+data/user_recollection/*/*.csv
+
 
 
 # Byte-compiled / optimized / DLL files
