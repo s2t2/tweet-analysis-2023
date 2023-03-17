@@ -44,3 +44,24 @@ WITH results as (
 SELECT *, success_count / lookup_count as success_rate
 FROM results
 ```
+
+## Analysis
+
+```sql
+WITH results as (
+  SELECT 
+    u.opinion_community
+    ,u.is_bot
+    ,u.is_q
+    ,count(distinct ru.user_id) as lookup_count
+    ,count(distinct case when ru.error is null then ru.user_id end) as success_count
+    ,count(distinct case when ru.error is not null then ru.user_id end) as failure_count
+  FROM `tweet-collector-py.impeachment_production.recollected_users` ru
+  JOIN `tweet-collector-py.impeachment_production.user_details_v20210806_slim` u ON u.user_id = ru.user_id
+  GROUP BY 1,2,3
+)
+
+SELECT *, success_count / lookup_count as success_rate
+FROM results
+ORDER BY 7 DESC
+```
