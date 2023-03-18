@@ -65,3 +65,85 @@ SELECT *, success_count / lookup_count as success_rate
 FROM results
 ORDER BY 7 DESC
 ```
+
+For lookups that have failed, it could be due to A) suspension (error message contains "User has been suspended"), or B) either account deletion or switching to private account (error message contains "Could not find user with ids")
+
+
+```sql
+SELECT 
+  split(message, ":")[0] as general_error_message
+  ,count( distinct user_id) as user_count
+FROM `tweet-collector-py.impeachment_production.recollected_users`
+WHERE error is not null
+GROUP BY 1 
+```
+
+```sql
+WITH lookups as (
+  SELECT 
+    ru.user_id
+    ,u.opinion_community
+    ,u.is_bot
+    ,u.is_q
+    ,u.avg_fact_score
+    ,u.avg_toxicity
+    ,ru.error
+    ,split(ru.message, ":")[0] as general_message 
+  FROM `tweet-collector-py.impeachment_production.recollected_users` ru
+  JOIN `tweet-collector-py.impeachment_production.user_details_v20210806_slim` u ON u.user_id = ru.user_id
+  -- WHERE error is not null
+  --GROUP BY 1, 2,3,4,5
+  --LIMIT 10
+)
+
+SELECT 
+  opinion_community
+  ,is_bot
+  ,is_q
+  ,error
+  ,general_message
+  ,count(distinct user_id) as user_count
+  ,avg(avg_fact_score) as avg_fact_score
+  ,avg(avg_toxicity) as avg_toxicity
+FROM lookups
+GROUP BY 1,2,3,4,5
+```
+
+```sql
+SELECT 
+  *
+  , success_count/ lookup_count as success_rate
+  ,not_found_count / lookup_count as not_found_rate
+  ,suspended_count / lookup_count as suspended_rate
+FROM (
+  SELECT 
+    opinion_community
+    ,is_bot
+    ,is_q
+    --,error
+    --,general_message
+    ,count(distinct user_id) as lookup_count
+    ,count(case when general_message is null then user_id end) as success_count
+    ,count(case when general_message = 'Could not find user with ids' then user_id end) as not_found_count
+    ,count(case when general_message = 'User has been suspended' then user_id end) as suspended_count
+    --,avg(avg_fact_score) as avg_fact_score
+    --,avg(avg_toxicity) as avg_toxicity
+  FROM (
+    SELECT 
+      ru.user_id
+      ,u.opinion_community
+      ,u.is_bot
+      ,u.is_q
+      ,u.avg_fact_score
+      ,u.avg_toxicity
+      ,ru.error
+      ,split(ru.message, ":")[0] as general_message 
+    FROM `tweet-collector-py.impeachment_production.recollected_users` ru
+    JOIN `tweet-collector-py.impeachment_production.user_details_v20210806_slim` u ON u.user_id = ru.user_id
+  ) lookups
+  GROUP BY 1,2,3
+)
+```
+
+
+
