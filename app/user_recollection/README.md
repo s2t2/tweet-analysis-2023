@@ -49,7 +49,7 @@ FROM results
 
 ```sql
 WITH results as (
-  SELECT 
+  SELECT
     u.opinion_community
     ,u.is_bot
     ,u.is_q
@@ -70,17 +70,17 @@ For lookups that have failed, it could be due to A) suspension (error message co
 
 
 ```sql
-SELECT 
+SELECT
   split(message, ":")[0] as general_error_message
   ,count( distinct user_id) as user_count
 FROM `tweet-collector-py.impeachment_production.recollected_users`
 WHERE error is not null
-GROUP BY 1 
+GROUP BY 1
 ```
 
 ```sql
 WITH lookups as (
-  SELECT 
+  SELECT
     ru.user_id
     ,u.opinion_community
     ,u.is_bot
@@ -88,7 +88,7 @@ WITH lookups as (
     ,u.avg_fact_score
     ,u.avg_toxicity
     ,ru.error
-    ,split(ru.message, ":")[0] as general_message 
+    ,split(ru.message, ":")[0] as general_message
   FROM `tweet-collector-py.impeachment_production.recollected_users` ru
   JOIN `tweet-collector-py.impeachment_production.user_details_v20210806_slim` u ON u.user_id = ru.user_id
   -- WHERE error is not null
@@ -96,7 +96,7 @@ WITH lookups as (
   --LIMIT 10
 )
 
-SELECT 
+SELECT
   opinion_community
   ,is_bot
   ,is_q
@@ -110,13 +110,13 @@ GROUP BY 1,2,3,4,5
 ```
 
 ```sql
-SELECT 
+SELECT
   *
   , success_count/ lookup_count as success_rate
   ,not_found_count / lookup_count as not_found_rate
   ,suspended_count / lookup_count as suspended_rate
 FROM (
-  SELECT 
+  SELECT
     opinion_community
     ,is_bot
     ,is_q
@@ -129,7 +129,7 @@ FROM (
     --,avg(avg_fact_score) as avg_fact_score
     --,avg(avg_toxicity) as avg_toxicity
   FROM (
-    SELECT 
+    SELECT
       ru.user_id
       ,u.opinion_community
       ,u.is_bot
@@ -137,7 +137,7 @@ FROM (
       ,u.avg_fact_score
       ,u.avg_toxicity
       ,ru.error
-      ,split(ru.message, ":")[0] as general_message 
+      ,split(ru.message, ":")[0] as general_message
     FROM `tweet-collector-py.impeachment_production.recollected_users` ru
     JOIN `tweet-collector-py.impeachment_production.user_details_v20210806_slim` u ON u.user_id = ru.user_id
   ) lookups
@@ -145,5 +145,85 @@ FROM (
 )
 ```
 
+```sql
 
 
+  -- toxicity score: success, not found, suspended
+  -- news quality score: success, not found, suspended
+
+DROP TABLE IF EXISTS `tweet-collector-py.impeachment_production.recollected_user_details`;
+CREATE TABLE IF NOT EXISTS `tweet-collector-py.impeachment_production.recollected_user_details` as (
+
+  SELECT *
+
+  ,CASE coalesce(general_message, "NULL")
+      -- WHEN NULL THEN "SUCCESS" -- not catching nulls, but the else clause does
+      WHEN "NULL" THEN "SUCCESS"
+      WHEN 'Could not find user with ids' THEN "NOT_FOUND"
+      WHEN 'User has been suspended' then "SUSPENDED"
+      ELSE 'OOPS'
+      END AS lookup_status
+
+  FROM (
+    SELECT
+          ru.user_id
+          ,u.created_on
+          ,u.screen_name_count
+          ,u.status_count
+          ,u.rt_count
+          ,u.opinion_community
+          ,u.is_bot
+          ,u.is_q
+          ,u.fact_scored_count
+          ,u.avg_fact_score
+          ,u.avg_toxicity
+          ,ru.error
+          ,split(ru.message, ":")[0] as general_message
+        FROM `tweet-collector-py.impeachment_production.recollected_users` ru
+        JOIN `tweet-collector-py.impeachment_production.user_details_v20210806_slim` u ON u.user_id = ru.user_id
+
+    )
+
+  --LIMIT 100
+)
+
+```
+
+
+
+```sql
+SELECT opinion_community, is_bot, is_q, lookup_status
+  ,count(distinct user_id) as user_count
+  ,avg(avg_fact_score) as avg_fact_score
+  ,avg(avg_toxicity) as avg_toxicity
+FROM `tweet-collector-py.impeachment_production.recollected_user_details`
+GROUP BY 1,2,3,4
+--LIMIT 100
+```
+
+```sql
+SELECT opinion_community, is_bot, is_q --, lookup_status
+  ,count(distinct user_id) as user_count
+
+  ,count(distinct case when lookup_status = "SUCCESS"   THEN user_id END) as user_count_success
+  ,count(distinct case when lookup_status = "NOT_FOUND" THEN user_id END) as user_count_notfound
+  ,count(distinct case when lookup_status = "SUSPENDED" THEN user_id END) as user_count_suspended
+
+  ,avg(case when lookup_status = "SUCCESS" THEN avg_fact_score END) as avg_fact_score_success
+  ,avg(case when lookup_status = "NOT_FOUND" THEN avg_fact_score END) as avg_fact_score_notfound
+  ,avg(case when lookup_status = "SUSPENDED" THEN avg_fact_score END) as avg_fact_score_suspended
+
+  ,avg(case when lookup_status = "SUCCESS" THEN avg_toxicity END) as    avg_toxicity_success
+  ,avg(case when lookup_status = "NOT_FOUND" THEN avg_toxicity END) as  avg_toxicity_notfound
+  ,avg(case when lookup_status = "SUSPENDED" THEN avg_toxicity END) as  avg_toxicity_suspended
+
+FROM `tweet-collector-py.impeachment_production.recollected_user_details`
+GROUP BY 1,2,3 --,4
+```
+
+Direct export slim two column results to CSV called "user_recollection_202303.csv", which we can re-join with the original data (CSV file in Google Drive) via Pandas in Colab:
+
+```sql
+SELECT user_id, lookup_status
+FROM `tweet-collector-py.impeachment_production.recollected_user_details`
+```
